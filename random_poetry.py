@@ -29,7 +29,7 @@ def generate_markov(words):
         markov_forward[w].append(words[i + 1])
     
     markov_backward = defaultdict(list)
-    for i, w in enumerate(words[1:]):
+    for i, w in enumerate(words[1:], start=1):
         markov_backward[w].append(words[i - 1])
         
     return markov_forward, markov_backward
@@ -53,9 +53,9 @@ def stress_pattern(word):
 
 
 # # Generate a line based on a start or end word and pattern
-def pattern_match(word_pattern, line_pattern, reverse=False):
+def pattern_match(word, line_pattern, reverse=False):
     """
-    Match a word pattern (if the vowels are stressed or not) to a target pattern for a line of poetry.
+    Match a word's pattern (if the vowels are stressed or not) to a target pattern for a line of poetry.
     
     Patterns are in the form of '[012]+', e.g. '0102'. 
     - '0': vowel is not stressed
@@ -65,16 +65,29 @@ def pattern_match(word_pattern, line_pattern, reverse=False):
     See http://en.wikipedia.org/wiki/Arpabet or https://www.nltk.org/book/ch02.html, chapter 4.2 A Pronouncing Dictionary,
     based on the nltk.corpus.cmudict CMU Pronouncing Dictionary for US English.
     """
-    if reverse:
-        word_pattern = word_pattern[::-1]
-        line_pattern = line_pattern[::-1]
-    for w, l in zip(list(word_pattern), list(line_pattern)):
-        if (l == '2') or (w == '2') or (w == l):
-            continue
-        else:
-            return False
-            
-    return True
+    # get the pattern of the word
+    word_pattern = stress_pattern(word)
+    if word_pattern:
+        if reverse:
+            word_pattern = word_pattern[::-1]
+            line_pattern = line_pattern[::-1]
+        for w, l in zip(list(word_pattern), list(line_pattern)):
+            if (l == '2') or (w == '2') or (w == l):
+                continue
+            else:
+                return False
+
+        return True
+    else:
+        return False
+
+
+def remaining_pattern(word, pattern):
+    if wp := stress_pattern(word):
+        return pattern[:-len(wp)]
+    else:
+        return None
+
 
 # old version, refactor so it starts with a word that is matched to the pattern (old version starts
 # with a seed word that was already matched to the previous part of the pattern)
@@ -100,17 +113,42 @@ def poetry_line_old(seed, pattern, reverse=False):
     return None
 
 
-def poetry_line(word, pattern):
+def poetry_line(word, line_pattern):
     """
     Generates a line of poetry, based on backward markov chain, i.e. starting at the end
     of the line so the words rhyme.
     :param word:
-    :param pattern:
+    :param line_pattern:
     :return:
     """
     # if the word and pattern are a match, we are done
-    if stress_pattern(word) == pattern:
+    if stress_pattern(word) == line_pattern:
         return [word, ]
+    # if the word doesn't match with the end of the pattern, we don't even need to proceed. Try a new word.
+    if not pattern_match(word, line_pattern, reverse=True):
+        return None
+
+    # if we get to this point, we have a word that matches the end of the pattern, and there is more pattern
+    # left. So we need to find a word that matches the remaining pattern etc until we find words that match
+    # all of the remaining pattern. If we find a word that doesn't match their part of the pattern, we need
+    # to backtrack.
+
+    # get all next possible words from the markov chain
+    rest_pattern = remaining_pattern(word, line_pattern)
+    options = set([w for w in markov_backward[word] if pattern_match(w, rest_pattern, reverse=True)])
+    if not options:
+        # we didn't find any viable options
+        return None
+
+    # go through random order of all available next words until we find a line that matches the rest of the pattern
+    for next_word in random.sample(list(options), len(options)):
+        rest_of_line = poetry_line(next_word, rest_pattern)
+        if rest_of_line:
+            return rest_of_line + [word, ]
+
+    # if we get to here, we found no valid options and need to abort (which results in either backtracking or the
+    # line needs to be started from a different word
+    return None
 
 
 # # Generate words that rhyme
@@ -187,7 +225,10 @@ def poem_block(rhyming_lines, patterns, words):
 
 if __name__ == '__main__':
 
-    sample_text = gutenberg.words('melville-moby_dick.txt')[4712:]
+    # sample_text = gutenberg.words('melville-moby_dick.txt')[4712:]
+    with open('sonnets.txt', 'r') as f:
+        raw_text = f.read()
+        sample_text = [w.strip() for w in raw_text.split()]
     cmu_dict = cmudict.dict()
 
     # # Test the process
@@ -195,8 +236,8 @@ if __name__ == '__main__':
     markov_forward, markov_backward = generate_markov(clean_text)
     rhymes = generate_rhyme_dict(clean_text)
 
-    seed = random.choice(clean_text)
-    print(poetry_line(seed, '1010101010', reverse=True))
+    for seed in ['brow', 'eye', 'viewest', 'lies', 'cruel', 'ornament', 'sweet', 'gladly']:
+        print(poetry_line(seed, '0101010101'))
 
     # print(rhymes[word_rhyme('whale')])
     # print(poem_block([0, 1, 0, 1], ['0101010101'] * 4, clean_text))
