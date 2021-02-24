@@ -2,7 +2,7 @@ from nltk.corpus import gutenberg
 from nltk.corpus import cmudict
 from collections import defaultdict
 import string
-import re
+import logging
 import random
 
 # # Cleaning up the text
@@ -47,6 +47,7 @@ def stress_pattern(word):
                 pattern += c[-1]
     else:
         # word was not found
+        logging.debug(f'stress_pattern: not in CMU: {word}')
         pattern = None
         
     return pattern
@@ -67,7 +68,7 @@ def pattern_match(word, line_pattern, reverse=False):
     """
     # get the pattern of the word
     word_pattern = stress_pattern(word)
-    if word_pattern:
+    if word_pattern and len(word_pattern) <= len(line_pattern):
         if reverse:
             word_pattern = word_pattern[::-1]
             line_pattern = line_pattern[::-1]
@@ -75,8 +76,10 @@ def pattern_match(word, line_pattern, reverse=False):
             if (l == '2') or (w == '2') or (w == l):
                 continue
             else:
+                logging.debug(f'pattern_match: no match: {word} ({word_pattern}), {line_pattern}')
                 return False
 
+        logging.debug(f'pattern_match: match: {word} ({word_pattern}), {line_pattern}')
         return True
     else:
         return False
@@ -121,11 +124,15 @@ def poetry_line(word, line_pattern):
     :param line_pattern:
     :return:
     """
+    logging.debug(f'poetry_line({word}, {line_pattern})')
+
     # if the word and pattern are a match, we are done
     if stress_pattern(word) == line_pattern:
+        logging.debug(f'poetry_line: found final match.')
         return [word, ]
     # if the word doesn't match with the end of the pattern, we don't even need to proceed. Try a new word.
     if not pattern_match(word, line_pattern, reverse=True):
+        logging.debug(f'poetry_line: no match, returning None')
         return None
 
     # if we get to this point, we have a word that matches the end of the pattern, and there is more pattern
@@ -136,6 +143,7 @@ def poetry_line(word, line_pattern):
     # get all next possible words from the markov chain
     rest_pattern = remaining_pattern(word, line_pattern)
     options = set([w for w in markov_backward[word] if pattern_match(w, rest_pattern, reverse=True)])
+    logging.debug(f'poetry_line: trying to match {len(options)} options to {rest_pattern}.')
     if not options:
         # we didn't find any viable options
         return None
@@ -144,10 +152,12 @@ def poetry_line(word, line_pattern):
     for next_word in random.sample(list(options), len(options)):
         rest_of_line = poetry_line(next_word, rest_pattern)
         if rest_of_line:
+            logging.debug(f'poetry_line: found a match {rest_of_line} + {word}')
             return rest_of_line + [word, ]
 
     # if we get to here, we found no valid options and need to abort (which results in either backtracking or the
     # line needs to be started from a different word
+    logging.debug(f'poetry_line: found no valid options, returning None')
     return None
 
 
@@ -187,7 +197,8 @@ def generate_rhyme_dict(words):
 # 
 # - Pick a start word based on:
 #     - the pattern to match (e.g. pick a word '010' if line pattern ends in '010'
-#     - the number of rhymes required (e.g. if lines 1 and 3 need to rhyme, pick a class of words that rhyme with each other
+#     - the number of rhymes required (e.g. if lines 1 and 3 need to rhyme,
+#       pick a class of words that rhyme with each other
 #     
 def poem_block(rhyming_lines, patterns, words):
     diff_rhymes = defaultdict(int)
@@ -225,10 +236,12 @@ def poem_block(rhyming_lines, patterns, words):
 
 if __name__ == '__main__':
 
-    # sample_text = gutenberg.words('melville-moby_dick.txt')[4712:]
-    with open('sonnets.txt', 'r') as f:
-        raw_text = f.read()
-        sample_text = [w.strip() for w in raw_text.split()]
+    logging.basicConfig(filename='poetry.log', level=logging.ERROR, filemode='w')
+
+    sample_text = gutenberg.words('melville-moby_dick.txt')[4712:]
+    # with open('sonnets.txt', 'r') as f:
+    #     raw_text = f.read()
+    #     sample_text = [w.strip() for w in raw_text.split()]
     cmu_dict = cmudict.dict()
 
     # # Test the process
@@ -236,8 +249,9 @@ if __name__ == '__main__':
     markov_forward, markov_backward = generate_markov(clean_text)
     rhymes = generate_rhyme_dict(clean_text)
 
-    for seed in ['brow', 'eye', 'viewest', 'lies', 'cruel', 'ornament', 'sweet', 'gladly']:
-        print(poetry_line(seed, '0101010101'))
+    for seed in ['brow', 'eye']:
+        logging.debug(f'--- Generating poetry line with seed {seed} ---')
+        print(poetry_line(seed, '0101010121'))
 
     # print(rhymes[word_rhyme('whale')])
     # print(poem_block([0, 1, 0, 1], ['0101010101'] * 4, clean_text))
