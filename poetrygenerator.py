@@ -29,7 +29,7 @@ class Word:
         """
         # look up the word in the cmudict
         if self.w in cmu_dict:
-            # get the first pronounciation of the word
+            # get the first pronunciation of the word
             cmu_word = cmu_dict[self.w][0]
             pattern = ''
             for c in cmu_word:
@@ -89,6 +89,29 @@ class Word:
             return None
 
 
+def cleanup_text(words):
+    """
+    Cleans up a raw list of words by:
+    - turning to lower case
+    - removing punctuation
+    :param words: A list of words
+    :return: A list of lowercase words without punctuation.
+    """
+    # remove punctuation
+    # third parameter of str.maketrans are chars that will be mapped to None
+
+    logging.debug(f'Corpus: Cleaning up text with {len(words)} words.')
+
+    transtab = str.maketrans('', '', string.punctuation)
+    temp_words = [w.translate(transtab) for w in words]
+    temp_words = [w for w in temp_words if w != '']
+
+    # turn to lower case
+    temp_words = [w.lower() for w in temp_words]
+
+    return temp_words
+
+
 class Corpus:
     def __init__(self, words):
         # sample_text = gutenberg.words('melville-moby_dick.txt')[4712:]
@@ -96,34 +119,30 @@ class Corpus:
         #     raw_text = f.read()
         #     sample_text = [w.strip() for w in raw_text.split()]
 
-        self.clean_text = self.cleanup_text(words)
+        self.clean_text = cleanup_text(words)
+        self.words = self.generate_word_registry()
         self.markov_forward, self.markov_backward = self.generate_markov()
         self.rhymes = self.generate_rhyme_dict()
 
-    def cleanup_text(self, words):
+    def generate_word_registry(self):
         """
-        Cleans up a raw list of words by:
-        - turning to lower case
-        - removing punctuation
-        :param words: A list of words
-        :return: A list of lowercase words without punctuation.
+        Generate a dictionary of words: Word objects for words found in the CMU Dictionary.
+        :return: Dictionary with word: Word(word) items.
         """
-        # remove punctuation
-        # third parameter of str.maketrans are chars that will be mapped to None
-        transtab = str.maketrans('', '', string.punctuation)
-        temp_words = [w.translate(transtab) for w in words]
-        temp_words = [w for w in temp_words if w != '']
-
-        # turn to lower case
-        temp_words = [w.lower() for w in temp_words]
-
-        return temp_words
+        logging.debug(f'Corpus: Generating word registry.')
+        wreg = {
+            w: Word(w) for w in self.clean_text
+            if w in cmu_dict
+        }
+        logging.debug(f'Corpus: Added {len(wreg)} words to the registry.')
+        return wreg
 
     # # Creating the markov chain (forward and backward looking)
     def generate_markov(self):
         markov_forward = defaultdict(list)
         for i, w in enumerate(self.clean_text[:-1]):
-            markov_forward[Word(w)].append(Word(self.clean_text[i + 1]))
+            if w in self.words:
+                markov_forward[self.words[w]].append(Word(self.clean_text[i + 1]))
 
         markov_backward = defaultdict(list)
         for i, w in enumerate(self.clean_text[1:], start=1):
