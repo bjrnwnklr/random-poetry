@@ -3,6 +3,7 @@ from collections import defaultdict
 import string
 import logging
 import random
+from pathlib import Path
 
 cmu_dict = cmudict.dict()
 
@@ -88,28 +89,28 @@ class Word:
         else:
             return None
 
-
-def cleanup_text(words):
-    """
-    Cleans up a raw list of words by:
-    - turning to lower case
-    - removing punctuation
-    :param words: A list of words
-    :return: A list of lowercase words without punctuation.
-    """
-    # remove punctuation
-    # third parameter of str.maketrans are chars that will be mapped to None
-
-    logging.debug(f'Corpus: Cleaning up text with {len(words)} words.')
-
-    transtab = str.maketrans('', '', string.punctuation)
-    temp_words = [w.translate(transtab) for w in words]
-    temp_words = [w for w in temp_words if w != '']
-
-    # turn to lower case
-    temp_words = [w.lower() for w in temp_words]
-
-    return temp_words
+    # # Generate words that rhyme
+    #
+    # - Go through each word, select the last vowel and any following consonants
+    # - Add to a rhyme dictionary
+    #
+    # Any words in the same rhyme class will also automatically have the same pattern!
+    def word_rhyme(self):
+        # look up the word in the cmudict
+        if self.w in cmu_dict:
+            # get the first pronounciation of the word
+            cmu_word = cmu_dict[self.w][0]
+            # find the last vowel
+            rhyme = []
+            for phone in cmu_word[::-1]:
+                if phone[-1] in '012':
+                    rhyme.append(phone)
+                    break
+                else:
+                    rhyme.append(phone)
+            return tuple(rhyme[::-1])
+        else:
+            return None
 
 
 class Corpus:
@@ -119,10 +120,51 @@ class Corpus:
         #     raw_text = f.read()
         #     sample_text = [w.strip() for w in raw_text.split()]
 
-        self.clean_text = cleanup_text(words)
+        logging.debug(f'Corpus: initializing corpus.')
+
+        self.raw_words = words
+        self.clean_text = self.cleanup_text()
         self.words = self.generate_word_registry()
         self.markov_forward, self.markov_backward = self.generate_markov()
         self.rhymes = self.generate_rhyme_dict()
+
+    @classmethod
+    def from_file(cls, filename):
+        """
+        Generates a Corpus object from the words in a text file.
+        :param filename: name of a text file, has to be in the 'textinput' directory.
+        :return: Corpus object initialized with the words from the text file.
+        """
+        logging.debug(f'Corpus: loading file {filename}.')
+
+        p = Path('textinput') / filename
+
+        if not p.exists():
+            raise FileNotFoundError(f'not found: {p}')
+
+        with open(p, 'r') as f:
+            raw_text = f.read()
+            return cls([w.strip() for w in raw_text.split()])
+
+    def cleanup_text(self):
+        """
+        Cleans up a raw list of words by:
+        - turning to lower case
+        - removing punctuation
+        :return: A list of lowercase words without punctuation.
+        """
+        logging.debug(f'Corpus: Cleaning up text with {len(self.raw_words)} words.')
+
+        # remove punctuation
+        # third parameter of str.maketrans are chars that will be mapped to None
+        transtab = str.maketrans('', '', string.punctuation)
+        temp_words = [w.translate(transtab) for w in self.raw_words]
+        temp_words = [w for w in temp_words if w != '']
+
+        # turn to lower case
+        temp_words = [w.lower() for w in temp_words]
+
+        return temp_words
 
     def generate_word_registry(self):
         """
@@ -137,48 +179,44 @@ class Corpus:
         logging.debug(f'Corpus: Added {len(wreg)} words to the registry.')
         return wreg
 
-    # # Creating the markov chain (forward and backward looking)
     def generate_markov(self):
+        """
+        Generate a forward and backward Markov chain dictionary. Entries in the chain
+        are words that can be found in the cmu dictionary. Any other words are not added.
+        :return: Two dictionaries: markov_forward, markov_backward. Each dictionary contains Word objects as
+        key and value.
+        """
+        logging.debug(f'Corpus: Generating markov chains.')
+
         markov_forward = defaultdict(list)
         for i, w in enumerate(self.clean_text[:-1]):
-            if w in self.words:
-                markov_forward[self.words[w]].append(Word(self.clean_text[i + 1]))
+            if w in self.words and self.clean_text[i + 1] in self.words:
+                markov_forward[self.words[w]].append(self.words[self.clean_text[i + 1]])
 
         markov_backward = defaultdict(list)
         for i, w in enumerate(self.clean_text[1:], start=1):
-            markov_backward[Word(w)].append(Word(self.clean_text[i - 1]))
+            if w in self.words and self.clean_text[i - 1] in self.words:
+                markov_backward[self.words[w]].append(self.words[self.clean_text[i - 1]])
+
+        logging.debug(f'Corpus: Generated markov chains. Forward: {len(markov_forward)} words; ' +
+                      f'backward: {len(markov_backward)} words.')
 
         return markov_forward, markov_backward
 
     def generate_rhyme_dict(self):
+        """
+        Generate a dictionary of rhymes associated with each word in the word registry. The rhymes
+        are generated based on the last syllable (i.e. last vowel plus any following consonants) of the
+        word.
+        :return: Dictionary with keys: tuple of last vowel / consonants as in the CMU dictionary, values: Word objects.
+        """
+        logging.debug(f'Corpus: Generating Rhyme dictionary.')
         rhyme_dict = defaultdict(set)
-        for w in words:
-            rhyme_dict[self.word_rhyme(w)].add(w)
+        for w in self.words.values():
+            rhyme_dict[w.word_rhyme()].add(w)
 
+        logging.debug(f'Corpus: Generated Rhyme dict: {len(rhyme_dict)} rhymes.')
         return rhyme_dict
-
-    # # Generate words that rhyme
-    #
-    # - Go through each word, select the last vowel and any following consonants
-    # - Add to a rhyme dictionary
-    #
-    # Any words in the same rhyme class will also automatically have the same pattern!
-    def word_rhyme(self):
-        # look up the word in the cmudict
-        if word in cmu_dict:
-            # get the first pronounciation of the word
-            cmu_word = cmu_dict[word][0]
-            # find the last vowel
-            rhyme = []
-            for phone in cmu_word[::-1]:
-                if phone[-1] in '012':
-                    rhyme.append(phone)
-                    break
-                else:
-                    rhyme.append(phone)
-            return tuple(rhyme[::-1])
-        else:
-            return None
 
 
 class Poem:
