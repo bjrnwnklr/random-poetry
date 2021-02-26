@@ -223,6 +223,39 @@ class Poem:
     def __init__(self, corpus):
         self.corpus = corpus
 
+    def generate_poem_block(self, line_pattern, k=2):
+        """
+        Generates k lines of poem, based on the provided line pattern.
+        :param line_pattern: Pattern of feet e.g. one unstressed syllable followed by a stressed syllable. '0101010101'
+        :param k: Number of lines to be generated. Lines will rhyme.
+        :return: A list of rhyming lines as strings.
+        """
+        logging.debug(f'Poem: generating poem block: {line_pattern}, {k=}')
+
+        # randomly pick rhymes until we find one that has at least k seed words that match the pattern.
+        seed_words = []
+        while len(seed_words) < k:
+            # pick a random rhyme that has at least k entries
+            rhyme = random.choice([r for r in self.corpus.rhymes if len(self.corpus.rhymes[r]) >= k])
+            logging.debug(f'Poem: picked seed rhyme {rhyme}')
+
+            # get all words from the rhyme that match the line pattern
+            seed_words = [w for w in self.corpus.rhymes[rhyme] if w.pattern_match(line_pattern, reverse=True)]
+            logging.debug(f'Poem: found {len(seed_words)} seed words.')
+
+        lines = []
+        for seed in random.sample(seed_words, k=len(seed_words)):
+            # pick a random seed word that matches the line pattern. Avoid using the same word for each line.
+            logging.debug(f'Poem: trying to generate a line from seed word: {seed}')
+            if pl := self.poetry_line(seed, line_pattern):
+                line = ' '.join(pl)
+                logging.debug(f'Poem: found a line: {line}')
+                lines.append(line)
+            if len(lines) == k:
+                return lines
+
+        return None
+
     def poetry_line(self, word, line_pattern):
         """
         Generates a line of poetry, based on backward markov chain, i.e. starting at the end
