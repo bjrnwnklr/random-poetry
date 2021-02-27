@@ -4,11 +4,18 @@ import string
 import logging
 import random
 from pathlib import Path
+from abc import ABC
 
 cmu_dict = cmudict.dict()
 
 
 class Word:
+    """
+    Represents a word. Key attributes:
+    - Word.w = text representation of the word
+    - Word.pattern = the stress pattern of the word e.g. '1010'
+    """
+
     def __init__(self, w):
         self.w = w
         self.pattern = self.stress_pattern()
@@ -33,6 +40,7 @@ class Word:
             # get the first pronunciation of the word
             cmu_word = cmu_dict[self.w][0]
             pattern = ''
+            # Add the stress from each vowel to create the stress pattern of the word
             for c in cmu_word:
                 if c[-1] in '012':
                     pattern += c[-1]
@@ -56,22 +64,30 @@ class Word:
         chapter 4.2 A Pronouncing Dictionary, based on the nltk.corpus.cmudict
         CMU Pronouncing Dictionary for US English.
         """
-        # get the pattern of the word
         word_pattern = self.pattern
+        # the word needs to have a valid stress pattern (i.e. it was in the dictionary),
+        # and its pattern has to be shorter than the line pattern so it fits in
         if word_pattern and len(word_pattern) <= len(line_pattern):
+            # for poems, we typically start at the end of the line with a rhyme, so need to match
+            # the word to the end of the pattern. This can be done easiest by reversing both the
+            # word and line patterns and then comparing them.
             if reverse:
                 word_pattern = self.pattern[::-1]
                 line_pattern = line_pattern[::-1]
+            # Word and line pattern match if they either have the exact same stress (0 or 1),
+            # while a 2 in word or line matches any of 0, 1 or 2.
             for w, l in zip(list(word_pattern), list(line_pattern)):
                 if (l == '2') or (w == '2') or (w == l):
                     continue
                 else:
+                    # one of the positions didn't match, so we can stop
                     logging.debug(f'pattern_match: no match: {self.w} ({word_pattern}), {line_pattern}')
                     return False
 
             logging.debug(f'pattern_match: match: {self.w} ({word_pattern}), {line_pattern}')
             return True
         else:
+            # If we get to here, the word either didn't have a valid pattern or the line pattern is too short
             return False
 
     def remaining_pattern(self, line_pattern):
@@ -89,18 +105,18 @@ class Word:
         else:
             return None
 
-    # # Generate words that rhyme
-    #
-    # - Go through each word, select the last vowel and any following consonants
-    # - Add to a rhyme dictionary
-    #
-    # Any words in the same rhyme class will also automatically have the same pattern!
     def word_rhyme(self):
-        # look up the word in the cmudict
+        """
+        Extract the last vowel and any following syllables from a word and return as a tuple.
+        This can be used to find words that rhyme with this word.
+        :return: A tuple of rhyming phonems e.g. ('EH0', 'ER')
+        """
+        # look up if the word is in the cmu dictionary - if not, we can't find a rhyme
         if self.w in cmu_dict:
             # get the first pronounciation of the word
             cmu_word = cmu_dict[self.w][0]
-            # find the last vowel
+            # go backwards through each phonem in the word from the end and find the last vowel
+            # stop after we find the first vowel and return the vowel plus all following consonants as a tuple
             rhyme = []
             for phone in cmu_word[::-1]:
                 if phone[-1] in '012':
@@ -110,16 +126,18 @@ class Word:
                     rhyme.append(phone)
             return tuple(rhyme[::-1])
         else:
+            # the word was not in the CMU dictionary, so no rhyme
             return None
 
 
 class Corpus:
-    def __init__(self, words):
-        # sample_text = gutenberg.words('melville-moby_dick.txt')[4712:]
-        # with open('sonnets.txt', 'r') as f:
-        #     raw_text = f.read()
-        #     sample_text = [w.strip() for w in raw_text.split()]
+    """
+    Represents a text corpus with all words from the corpus, a forward and backward markov chain and
+    a dictionary of words that rhyme. Cleans up the text and looks up all words in the CMU dictionary.
+    Any words not in the CMU dictionary will not be used for the markov chains and rhyme dictionary.
+    """
 
+    def __init__(self, words):
         logging.debug(f'Corpus: initializing corpus.')
 
         self.raw_words = words
@@ -188,6 +206,8 @@ class Corpus:
         """
         logging.debug(f'Corpus: Generating markov chains.')
 
+        # Generate a markov chain. Only words that were found in the CMU dictionary are used for both the
+        # current and the preceeding / following word.
         markov_forward = defaultdict(list)
         for i, w in enumerate(self.clean_text[:-1]):
             if w in self.words and self.clean_text[i + 1] in self.words:
@@ -220,8 +240,14 @@ class Corpus:
 
 
 class Poem:
-    def __init__(self, corpus):
+    """
+    Represents a poem with a metric pattern and provides methods to generate a poem based on a metric pattern
+    and a provided corpus of words.
+    """
+
+    def __init__(self, corpus, form):
         self.corpus = corpus
+        self.form = form
 
     def generate_poem_block(self, line_pattern, k=2):
         """
@@ -299,3 +325,53 @@ class Poem:
         # line needs to be started from a different word
         logging.debug(f'poetry_line({word}): found no valid options, returning None')
         return None
+
+
+class PoemForm(ABC):
+    """
+    Abstract class defining the attributes of a poem.
+    - name: name of the poem type, e.g. "Sonnet"
+    - lines: structure of the poem: how many lines and which ones rhyme with each other. Spaces declare a blank line
+    - pattern: dictionary of line: meter pairs, e.g. for a line with iambic pentameter: 'A': '0101010101'
+    """
+    name: str
+    lines: str
+    pattern: dict
+
+
+class Sonnet(PoemForm):
+    iambic_pentameter = '01' * 5
+    name = 'Sonnet'
+    lines = 'ABAB CDCD EFEF GG'
+    pattern = {
+        'A': iambic_pentameter,
+        'B': iambic_pentameter,
+        'C': iambic_pentameter,
+        'D': iambic_pentameter,
+        'E': iambic_pentameter,
+        'F': iambic_pentameter,
+        'G': iambic_pentameter
+    }
+
+
+class Raven(PoemForm):
+    raven_segment = '10101010'
+    raven_segment_short = '1010101'
+    name = 'Raven'
+    lines = 'AA BC DD DC EC C'
+    pattern = {
+        'A': raven_segment,
+        'B': raven_segment,
+        'C': raven_segment_short,
+        'D': raven_segment,
+        'E': raven_segment
+    }
+
+
+class Limerick(PoemForm):
+    name = 'Limerick'
+    lines = 'AABBA'
+    pattern = {
+        'A': '01001001',
+        'B': '01001'
+    }
