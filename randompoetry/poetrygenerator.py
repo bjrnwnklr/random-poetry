@@ -3,8 +3,8 @@ from collections import defaultdict
 import string
 import logging
 import random
+import json
 from pathlib import Path
-from abc import ABC
 
 cmu_dict = cmudict.dict()
 
@@ -155,7 +155,7 @@ class Corpus:
         """
         logging.debug(f'Corpus: loading file {filename}.')
 
-        p = Path('textinput') / filename
+        p = Path('data') / 'textinput' / filename
 
         if not p.exists():
             raise FileNotFoundError(f'not found: {p}')
@@ -327,51 +327,50 @@ class Poem:
         return None
 
 
-class PoemForm(ABC):
+class PoemForm:
     """
-    Abstract class defining the attributes of a poem.
+    Class defining the attributes of a poem.
     - name: name of the poem type, e.g. "Sonnet"
     - lines: structure of the poem: how many lines and which ones rhyme with each other. Spaces declare a blank line
     - pattern: dictionary of line: meter pairs, e.g. for a line with iambic pentameter: 'A': '0101010101'
     """
-    name: str
-    lines: str
-    pattern: dict
+    def __init__(self, name, lines, pattern):
+        self.name = name
+        self.lines = lines
+        self.pattern = pattern
+
+    def __repr__(self):
+        repr_str = f'{self.name}\n\t{self.lines}\n'
+        for k, v in self.pattern.items():
+            repr_str += f'\t\t{k}: {v}\n'
+
+        return repr_str
 
 
-class Sonnet(PoemForm):
-    iambic_pentameter = '01' * 5
-    name = 'Sonnet'
-    lines = 'ABAB CDCD EFEF GG'
-    pattern = {
-        'A': iambic_pentameter,
-        'B': iambic_pentameter,
-        'C': iambic_pentameter,
-        'D': iambic_pentameter,
-        'E': iambic_pentameter,
-        'F': iambic_pentameter,
-        'G': iambic_pentameter
-    }
+class PoemFormRegistry:
+    def __init__(self):
+        self.poemforms = dict()
 
+    @classmethod
+    def from_json(cls, filename):
+        logging.debug(f'PoemFormRegistry: loading file {filename}.')
 
-class Raven(PoemForm):
-    raven_segment = '10101010'
-    raven_segment_short = '1010101'
-    name = 'Raven'
-    lines = 'AA BC DD DC EC C'
-    pattern = {
-        'A': raven_segment,
-        'B': raven_segment,
-        'C': raven_segment_short,
-        'D': raven_segment,
-        'E': raven_segment
-    }
+        p = Path('data') / 'config' / filename
 
+        if not p.exists():
+            raise FileNotFoundError(f'not found: {p}')
 
-class Limerick(PoemForm):
-    name = 'Limerick'
-    lines = 'AABBA'
-    pattern = {
-        'A': '01001001',
-        'B': '01001'
-    }
+        with open(p, 'r') as f:
+            poem_dict = json.load(f)
+
+        pfr = PoemFormRegistry()
+        for pf in poem_dict['poemforms']:
+            pfr.poemforms[pf['name']] = PoemForm(pf['name'], pf['lines'], pf['pattern'])
+
+        return pfr
+
+    def __repr__(self):
+        repr_str = f'PoemFormRegistry with {len(self.poemforms)} entries:\n'
+        for pf in self.poemforms.values():
+            repr_str += str(pf)
+        return repr_str

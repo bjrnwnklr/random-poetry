@@ -1,3 +1,6 @@
+# project related directories
+data/textinput/*.txt
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

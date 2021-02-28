@@ -1,1 +1,2 @@
-from poetrygenerator import Corpus, Poem
+from randompoetry.poetrygenerator import Corpus, Poem, PoemFormRegistry
+
