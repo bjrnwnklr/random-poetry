@@ -130,6 +130,16 @@ class Word:
             return None
 
 
+class CorpusRegistry:
+    def __init__(self):
+        logging.debug(f'CorpusRegistry: initializing registry.')
+        p = Path('data') / 'textinput'
+
+        self.registry = dict()
+        for f in list(p.glob('*.txt')):
+            self.registry[f.stem] = Corpus.from_path(f)
+
+
 class Corpus:
     """
     Represents a text corpus with all words from the corpus, a forward and backward markov chain and
@@ -150,7 +160,7 @@ class Corpus:
     def from_file(cls, filename):
         """
         Generates a Corpus object from the words in a text file.
-        :param filename: name of a text file, has to be in the 'textinput' directory.
+        :param filename: name of a text file, has to be in the 'data/textinput' directory.
         :return: Corpus object initialized with the words from the text file.
         """
         logging.debug(f'Corpus: loading file {filename}.')
@@ -161,6 +171,22 @@ class Corpus:
             raise FileNotFoundError(f'not found: {p}')
 
         with open(p, 'r') as f:
+            raw_text = f.read()
+            return cls([w.strip() for w in raw_text.split()])
+
+    @classmethod
+    def from_path(cls, path):
+        """
+        Generates a Corpus object from the words in a text file.
+        :param path: Pathlib Path to the input file.
+        :return: Corpus object initialized with the words from the text file.
+        """
+        logging.debug(f'Corpus: loading file {path}.')
+
+        if not path.exists():
+            raise FileNotFoundError(f'not found: {path}')
+
+        with open(path, 'r') as f:
             raw_text = f.read()
             return cls([w.strip() for w in raw_text.split()])
 

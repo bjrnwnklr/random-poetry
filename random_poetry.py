@@ -1,6 +1,6 @@
 from nltk.corpus import gutenberg
 import logging
-from randompoetry import Poem, PoemFormRegistry, Corpus
+from randompoetry import Poem, PoemFormRegistry, Corpus, CorpusRegistry
 
 if __name__ == '__main__':
 
@@ -8,6 +8,9 @@ if __name__ == '__main__':
 
     pfr = PoemFormRegistry.from_json('poemforms.json')
     print(pfr)
+
+    cr = CorpusRegistry()
+    print()
 
     # sample_text = gutenberg.words('melville-moby_dick.txt')[4712:]
     # corpus_moby = Corpus(sample_text)
