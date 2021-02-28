@@ -1,7 +1,6 @@
 from nltk.corpus import gutenberg
 import logging
-from poetrygenerator import Corpus, Poem, Sonnet, Limerick, Raven
-
+from randompoetry import Corpus, Poem
 
 if __name__ == '__main__':
 
