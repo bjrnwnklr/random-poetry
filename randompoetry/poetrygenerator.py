@@ -170,7 +170,7 @@ class Corpus:
         if not p.exists():
             raise FileNotFoundError(f'not found: {p}')
 
-        with open(p, 'r') as f:
+        with open(p, 'r', encoding='utf-8') as f:
             raw_text = f.read()
             return cls([w.strip() for w in raw_text.split()])
 
@@ -186,7 +186,7 @@ class Corpus:
         if not path.exists():
             raise FileNotFoundError(f'not found: {path}')
 
-        with open(path, 'r') as f:
+        with open(path, 'r', encoding='utf-8') as f:
             raw_text = f.read()
             return cls([w.strip() for w in raw_text.split()])
 
