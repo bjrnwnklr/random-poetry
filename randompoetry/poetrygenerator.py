@@ -107,7 +107,7 @@ class Word:
 
     def word_rhyme(self):
         """
-        Extract the last vowel and any following syllables from a word and return as a tuple.
+        Extract the last stressed vowel and any following syllables from a word and return as a tuple.
         This can be used to find words that rhyme with this word.
         :return: A tuple of rhyming phonems e.g. ('EH0', 'ER')
         """
@@ -115,11 +115,14 @@ class Word:
         if self.w in cmu_dict:
             # get the first pronounciation of the word
             cmu_word = cmu_dict[self.w][0]
-            # go backwards through each phonem in the word from the end and find the last vowel
+            # go backwards through each phonem in the word from the end and find the last stressed vowel
             # stop after we find the first vowel and return the vowel plus all following consonants as a tuple
+            # Note:
+            # - use '012' to use the last vowel, regardless if stressed or not.
+            # - use '12' to use the last _stressed_ vowel.
             rhyme = []
             for phone in cmu_word[::-1]:
-                if phone[-1] in '012':
+                if phone[-1] in '12':
                     rhyme.append(phone)
                     break
                 else:
@@ -147,9 +150,10 @@ class Corpus:
     Any words not in the CMU dictionary will not be used for the markov chains and rhyme dictionary.
     """
 
-    def __init__(self, words):
-        logging.debug(f'Corpus: initializing corpus.')
+    def __init__(self, words, name='Some text'):
+        logging.debug(f'Corpus: initializing corpus: {name}.')
 
+        self.name = name
         self.raw_words = words
         self.clean_text = self.cleanup_text()
         self.words = self.generate_word_registry()
@@ -172,7 +176,7 @@ class Corpus:
 
         with open(p, 'r', encoding='utf-8') as f:
             raw_text = f.read()
-            return cls([w.strip() for w in raw_text.split()])
+            return cls([w.strip() for w in raw_text.split()], p.stem)
 
     @classmethod
     def from_path(cls, path):
@@ -188,7 +192,7 @@ class Corpus:
 
         with open(path, 'r', encoding='utf-8') as f:
             raw_text = f.read()
-            return cls([w.strip() for w in raw_text.split()])
+            return cls([w.strip() for w in raw_text.split()], path.stem)
 
     def cleanup_text(self):
         """
@@ -275,6 +279,39 @@ class Poem:
         self.corpus = corpus
         self.form = form
 
+    def generate_poem(self):
+        """
+        Generate a poem based on the lines and patterns in the PoemForm (self.form).
+        :return: A string representation of the poem.
+        """
+        logging.debug(f'Poem: generating poem from {self.corpus.name} and {self.form.name}.')
+        # count how many lines are required for each element in lines
+        line_count = {
+            c: self.form.lines.count(c)
+            for c in list(self.form.lines) if c != ' '
+        }
+
+        # call self.generate_poem_block with the pattern and number of lines required
+        # repeat until the returned value is not none, otherwise try again
+        # store in a dictionary of lists (A: [line1, line2,...])
+        poem_blocks = dict()
+        for line in line_count:
+            poem_block = None
+            while poem_block is None:
+                poem_block = self.generate_poem_block(self.form.pattern[line], line_count[line])
+            poem_blocks[line] = poem_block
+
+        # assemble the output string from lines, including blank lines
+        poem_string = ''
+        for line in list(self.form.lines):
+            if line == ' ':
+                poem_string += '\n'
+            else:
+                poem_string += poem_blocks[line].pop(0)
+                poem_string += '\n'
+
+        return poem_string
+
     def generate_poem_block(self, line_pattern, k=2):
         """
         Generates k lines of poem, based on the provided line pattern.
@@ -302,7 +339,7 @@ class Poem:
             if pl := self.poetry_line(seed, line_pattern):
                 line = ' '.join(pl)
                 logging.debug(f'Poem: found a line: {line}')
-                lines.append(line)
+                lines.append(line.title())
             if len(lines) == k:
                 return lines
 
@@ -361,6 +398,8 @@ class PoemForm:
     - pattern: dictionary of line: meter pairs, e.g. for a line with iambic pentameter: 'A': '0101010101'
     """
     def __init__(self, name, lines, pattern):
+        # TODO: check if lines and pattern match i.e. if for every letter in self.line,
+        #  there is a matching pattern entry. Raise an exception if not matching.
         self.name = name
         self.lines = lines
         self.pattern = pattern

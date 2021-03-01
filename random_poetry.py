@@ -4,30 +4,18 @@ from randompoetry import Poem, PoemFormRegistry, Corpus, CorpusRegistry
 
 if __name__ == '__main__':
 
-    logging.basicConfig(filename='poetry.log', level=logging.DEBUG, filemode='w', format='%(asctime)s %(message)s')
+    logging.basicConfig(filename='poetry.log', level=logging.ERROR, filemode='w', format='%(asctime)s %(message)s')
 
     pfr = PoemFormRegistry.from_json('poemforms.json')
     print(pfr)
 
     cr = CorpusRegistry()
 
-    # for c in [corpus_moby, corpus_sonnets]:
-    #     p = Poem(c)
-    #     print('xxXXxx')
-    #     for mp in metric_patterns:
-    #         print('---')
-    #         for _ in range(5):
-    #             print()
-    #             block = p.generate_poem_block(mp, k=2)
-    #             if block:
-    #                 for line in block:
-    #                     print(line)
-    #         print()
-    #     print()
-
-    # for seed in ['brow', 'eye']:
-    #     logging.debug(f'--- Generating poetry line with seed {seed} ---')
-    #     print(poetry_line(seed, '0101010121'))
-
-    # print(rhymes[word_rhyme('whale')])
-    # print(poem_block([0, 1, 0, 1], ['0101010101'] * 4, clean_text))
+    # for each corpus (text style / text input, e.g. Shakespeare), create a poem in each of the forms
+    for corpus_name in cr.registry:
+        print(f'--- In the style of {corpus_name}: ---')
+        for pf_name in pfr.poemforms:
+            print(f'\nA {pf_name} poem!')
+            print('-' * 20, '\n')
+            poem = Poem(cr.registry[corpus_name], pfr.poemforms[pf_name])
+            print(poem.generate_poem())
