@@ -10,13 +10,7 @@ if __name__ == '__main__':
     print(pfr)
 
     cr = CorpusRegistry()
-    print()
 
-    # sample_text = gutenberg.words('melville-moby_dick.txt')[4712:]
-    # corpus_moby = Corpus(sample_text)
-    # corpus_sonnets = Corpus.from_file('sonnets.txt')
-    # metric_patterns = ['0101010101', '10101010']
-    #
     # for c in [corpus_moby, corpus_sonnets]:
     #     p = Poem(c)
     #     print('xxXXxx')
