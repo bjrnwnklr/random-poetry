@@ -69,10 +69,22 @@ textarea {
     color: var(--font-on-surface-color);
 }
 
+.poemheader {
+    font-family: 'Amatic SC', cursive;
+    font-size: 3rem;
+    font-weight: 400;
+    line-height: 1.4;
+}
+
+.poemaccent {
+    font-size: 3.4rem;
+    font-weight: 600;
+}
+
 .poemtext {
     font-family: 'Amatic SC', cursive;
     font-size: 2rem;
-    font-weight: 400;
+    font-weight: 340;
     line-height: 1.4;
 }
 
