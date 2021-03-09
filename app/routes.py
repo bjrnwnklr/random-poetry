@@ -1,13 +1,21 @@
-from app import app
-from randompoetry import Poem, PoemFormRegistry, Corpus, CorpusRegistry
+from app import app, pfr, cr
+from randompoetry import Poem
 import random
+from flask import render_template
+
 
 @app.route('/')
 @app.route('/index')
 def index():
-    return "Hello world!"
 
     # randomly select a style and text source
-    poemstyle = random.choice(pfr.poemforms)
-    textcorpus = random.choice(cr.registry)
-    
+    poemstyle = random.choice(list(pfr.poemforms.keys()))
+    textcorpus = random.choice(list(cr.registry.keys()))
+
+    # generate a random poem
+    poem = Poem(cr.registry[textcorpus], pfr.poemforms[poemstyle])
+
+    return render_template('generate.html', poem=poem.generate_poem(), poemstyle=poemstyle, textcorpus=textcorpus)
+
+
+

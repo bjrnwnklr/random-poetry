@@ -70,22 +70,23 @@ textarea {
 }
 
 .poemheader {
-    font-family: 'Amatic SC', cursive;
-    font-size: 3rem;
-    font-weight: 400;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 2rem;
+    font-weight: 100;
     line-height: 1.4;
 }
 
 .poemaccent {
-    font-size: 3.4rem;
-    font-weight: 600;
+    font-size: 2.4rem;
+    font-weight: 200;
 }
 
 .poemtext {
-    font-family: 'Amatic SC', cursive;
-    font-size: 2rem;
-    font-weight: 340;
-    line-height: 1.4;
+    font-family: 'Lato', sans-serif;
+    font-size: 1rem;
+    font-weight: 100;
+    line-height: 1.5;
+    white-space: pre-line;
 }
 
 

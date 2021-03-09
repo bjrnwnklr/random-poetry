@@ -1,3 +1,5 @@
+# Editable Git install with no remote (app==0.0.0)
+-e d:\python\nltk\random-poetry
 argon2-cffi==20.1.0
 async-generator==1.10
 attrs==20.3.0
@@ -44,6 +46,7 @@ Pygments==2.8.0
 pyparsing==2.4.7
 pyrsistent==0.17.3
 python-dateutil==2.8.1
+python-dotenv==0.15.0
 pywin32==300
 pywinpty==0.5.7
 pyzmq==22.0.3

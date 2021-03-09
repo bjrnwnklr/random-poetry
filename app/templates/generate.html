@@ -5,9 +5,9 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="preconnect" href="https://fonts.gstatic.com">
-    <link href="https://fonts.googleapis.com/css2?family=Open+Sans&family=Yanone+Kaffeesatz:wght@200..400&family=Amatic+SC&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/style.css" />
-    <title>Test</title>
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans&family=Yanone+Kaffeesatz:wght@200..400&family=Lato:wght@100..400&family=Montserrat:wght@100.400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="static/style.css" />
+    <title>A {{ poemstyle }} in the style of {{ textcorpus }}</title>
 </head>
 <body>
     <section>
@@ -25,22 +25,10 @@
 
     <section>
     <div class="container">
-        <p class="poemheader">A <span class="poemaccent">Limerick</span> in the style of <span class="poemaccent">Jethro Tull</span></p>
+        <p class="poemheader">A <span class="poemaccent">{{ poemstyle }}</span> in the style of <span class="poemaccent">{{ textcorpus }}</span></p>
         <div>
             <p class="poemtext">
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit. <br>
-                Maecenas mollis, velit sagittis tempus tempus, nunc lacus <br>
-                ornare dolor, eget convallis nibh dui ut metus. <br>
-                Praesent vitae sollicitudin nisl, <br>
-                sed pretium ex. Aliquam neque urna, <br>
-                tincidunt vel ultrices eget, ornare ac ex. Ut tempor pulvinar <br>
-                libero nec tincidunt. Vivamus vitae congue felis. <br>
-                Quisque tempor ipsum eu mauris placerat, suscipit imperdiet sapien porttitor. <br>
-                Proin condimentum nisi sed mi viverra iaculis. Proin facilisis mauris eget commodo dignissim. <br>
-                Etiam imperdiet fermentum tellus, non lacinia risus porta dignissim. <br>
-                Nulla facilisi. Vestibulum in lorem ultricies, condimentum nunc quis, mollis turpis. <br>
-                Proin mollis ornare elementum. Curabitur leo dolor, auctor sit amet aliquam sodales, malesuada nec mauris. <br>
-                Mauris blandit leo non enim tempor fermentum. Etiam faucibus dolor id mattis dignissim. <br>
+                {{ poem }}
             </p>
         </div>
     </div>
