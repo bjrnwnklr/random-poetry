@@ -14,12 +14,13 @@
 }
 
 body {
-    font-family: 'Open Sans', sans-serif;
-    font-weight: 200;
+    font-family: 'Lato', sans-serif;
+    font-weight: 300;
     -webkit-font-smoothing: antialiased;
     background: var(--background-color);
     color: #ffffff;
     line-height: 1.5;
+    font-size: 1.1rem;
 }
 
 p {
@@ -28,8 +29,8 @@ p {
 }
 
 h1 {
-    font-family: 'Yanone Kaffeesatz', sans-serif;
-    font-size: 4.5rem;
+    font-family: 'Lato', sans-serif;
+    font-size: 4rem;
     font-weight: 400;
     line-height: 1.2;
     margin-bottom: 0.5rem;
@@ -70,21 +71,20 @@ textarea {
 }
 
 .poemheader {
-    font-family: 'Montserrat', sans-serif;
-    font-size: 2rem;
-    font-weight: 100;
+    font-family: 'Yanone Kaffeesatz', sans-serif;
+    font-size: 2.4rem;
+    font-weight: 400;
     line-height: 1.4;
 }
 
 .poemaccent {
-    font-size: 2.4rem;
-    font-weight: 200;
+
 }
 
 .poemtext {
-    font-family: 'Lato', sans-serif;
-    font-size: 1rem;
-    font-weight: 100;
+    font-family: 'Yanone Kaffeesatz', sans-serif;
+    font-size: 1.5rem;
+    font-weight: 200;
     line-height: 1.5;
     white-space: pre-line;
 }
