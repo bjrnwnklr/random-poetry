@@ -10,20 +10,21 @@
     <title>A {{ poemstyle }} in the style of {{ textcorpus }}</title>
 </head>
 <body>
-    <section>
-        <div class="container">
-            <h1>Random Poetry Generator</h1>
-            <div>
+    <div class="container">
+        <h1>Random Poetry Generator</h1>
+        <div>
+            <form action="" method="post">
+                {{ form.hidden_tag() }}
                 <p>
-                    Generate random poetry in the style of famous poems, using text / lyrics.
+                    Generate a {{ form.poemstyle }} in the style of {{ form.textcorpus }}
                 </p>
-                <a href="#" class="btn btn-primary">Primary!</a> 
-                <a href="#" class="btn btn-secondary">Secondary!</a>
-            </div>
+                <p>
+                    {{ form.submit(class="btn btn-primary") }}
+                    {{ form.randompoem(class="btn btn-secondary") }}
+                </p>
+            </form>
         </div>
-    </section>
-
-    <section>
+    </div>
     <div class="container">
         <p class="poemheader">A <span class="poemaccent">{{ poemstyle }}</span> in the style of <span class="poemaccent">{{ textcorpus }}</span></p>
         <div>
@@ -32,6 +33,5 @@
             </p>
         </div>
     </div>
-    </section>
 </body>
 </html>

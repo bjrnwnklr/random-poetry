@@ -14,7 +14,7 @@
       }
     },
     {
-      "name": "Raven",
+      "name": "Raven Poem",
       "lines": "AA BC DD DC EC C",
       "pattern": {
           "A": "10101010",
