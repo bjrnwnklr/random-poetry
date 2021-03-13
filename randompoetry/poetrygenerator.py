@@ -310,7 +310,7 @@ class Poem:
                 poem_string += poem_blocks[line].pop(0)
                 poem_string += '\n'
 
-        return poem_string
+        return poem_string.strip()
 
     def generate_poem_block(self, line_pattern, k=2):
         """

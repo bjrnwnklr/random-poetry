@@ -5,9 +5,11 @@
     --font-on-primary-color: #000000;
     --primary-color: #e0715f;
     --secondary-color: #81b29a;
+    --muted-font-color: #666666;
 }
 
-* {
+/* Reset browser defaults, this style will be applied to every element */
+*, *::before, *::after {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
@@ -18,7 +20,7 @@ body {
     font-weight: 300;
     -webkit-font-smoothing: antialiased;
     background: var(--background-color);
-    color: #ffffff;
+    color: var(--font-on-surface-color);
     line-height: 1.5;
     font-size: 1.1rem;
 }
@@ -48,15 +50,18 @@ label {
     margin-bottom: 0.5rem;
 }
 
-textarea {
-    
+/* create a footer that stays at the bottom, as found at https://dev.to/akshay_rajput/keep-footer-at-bottom-of-page-using-flexbox-4a6f */
+.pagewrap {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
 }
 
-.lead {
-    font-size: 1.25rem;
+main {
+    flex-grow: 1;
 }
 
-.container {
+.boxed {
     max-width: 960px;
     width: 100%;
     padding-right: 15px;
@@ -65,9 +70,18 @@ textarea {
     margin-right: auto;
     margin-left: auto;
     margin-bottom: 10px;
+}
+
+.container {
     box-shadow: 0px 0px 5px 3px rgba(0, 0, 0, 0.3);
     background-color: var(--surface-color);
     color: var(--font-on-surface-color);
+}
+
+footer {
+    text-align: center;
+    font-size: 0.8rem;
+    color: var(--muted-font-color);
 }
 
 .poemheader {
