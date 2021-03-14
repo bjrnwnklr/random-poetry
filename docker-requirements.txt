@@ -1,4 +1,4 @@
-Flask
-Flask-WTF
-nltk
-WTForms
+Flask==1.1.2
+Flask-WTF==0.14.3
+nltk==3.5
+WTForms==2.3.3
