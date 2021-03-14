@@ -18,15 +18,10 @@
                     <form action="" method="POST" novalidate>
                         {{ form.hidden_tag() }}
                         <p>
-                            A {{ form.poemstyle }} in the style of {{ form.textcorpus }}!
+                            A {{ form.poemstyle(class='select-field') }} in the style of {{ form.textcorpus(class='select-field') }}!
                         </p>
                         <p>
-                            {{ form.submit(class="btn btn-primary") }}
-                        </p>
-                    </form>
-                    <form action="" method="POST" novalidate>
-                        <p>
-                            {{ form.randompoem(class="btn btn-secondary") }}
+                            {{ form.submit(class="btn btn-primary") }} <a href="/" class="btn btn-secondary">I'm feeling lucky!</a>
                         </p>
                     </form>
                 </div>
@@ -38,7 +33,8 @@
         </main>
         <footer class="boxed">
             <p>
-                Made by Bjoern Winkler
+                <a href="https://github.com/bjrnwnklr/random-poetry">Bjoern Winkler</a>, 2021. Inspired by <a class="text-info" href="https://www.github.com/katlings/pyambic-pentameter">Pyambic Pentameter</a> 
+                by <a class="text-info" href="https://www.twitter.com/hartknyx">@hartknyx</a>
             </p>
         </footer>
     </div>

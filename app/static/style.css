@@ -5,7 +5,7 @@
     --font-on-primary-color: #000000;
     --primary-color: #e0715f;
     --secondary-color: #81b29a;
-    --muted-font-color: #666666;
+    --muted-font-color: #9c9898;
 }
 
 /* Reset browser defaults, this style will be applied to every element */
@@ -50,6 +50,14 @@ label {
     margin-bottom: 0.5rem;
 }
 
+.select-field {
+    font-family: 'Lato', sans-serif;
+    font-weight: 300;
+    -webkit-font-smoothing: antialiased;
+    line-height: 1.5;
+    font-size: 1.1rem;
+}
+
 /* create a footer that stays at the bottom, as found at https://dev.to/akshay_rajput/keep-footer-at-bottom-of-page-using-flexbox-4a6f */
 .pagewrap {
     display: flex;
@@ -80,8 +88,13 @@ main {
 
 footer {
     text-align: center;
-    font-size: 0.8rem;
+    font-size: 0.9rem;
     color: var(--muted-font-color);
+}
+
+footer a{
+    color: var(--muted-font-color);
+    text-decoration: underline;
 }
 
 .poemheader {
@@ -103,30 +116,15 @@ footer {
     white-space: pre-line;
 }
 
-
-.form-control {
-    display: block;
-    width: 100%;
-    padding: 0.375rem 0.75rem;
-    border: 1px solid #ced4da;
-    border-radius: 0.25rem;
-    font-size: 1rem;
-    font-weight: 400;
-    line-height: 1.5;
-}
-
-.form-group {
-    margin-bottom: 1.5rem;
-}
-
 .btn {
     border-radius: 0.25rem;
     font-size: 1rem;
     font-weight: 400;
     padding: 0.375rem 0.75rem;
     text-align: center;
+    text-decoration: none;
     vertical-align: middle;
-    display: inline-block
+    display: inline-block;
 }
 
 .btn-primary {
